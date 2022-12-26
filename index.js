@@ -37,11 +37,16 @@ function verifyJWT(req, res, next) {
 
 async function run(){
     try{
-        await client.connect();
+        // await client.connect();
         const serviceCollection = client.db('photography').collection('services');
         const reviewsCollection = client.db('photography').collection('reviews');
 
             //get service..
+            app.post('/jwt', (req, res) => {
+                const user = req.body;
+                const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn: '10h' });
+                res.send({ token });
+            });
             app.get('/services', async (req, res) => {
                 const dataLimit = req.query.dataSize;
                 const query = {};
@@ -49,11 +54,7 @@ async function run(){
                 const services = await cursor.toArray();
                 res.send(services);
             });
-            app.post('/jwt', (req, res) => {
-                const user = req.body;
-                const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10h' });
-                res.send({ token });
-            });
+           
 
         //post service..
         app.post('/services', async (req, res) => {
@@ -88,8 +89,6 @@ async function run(){
             const reviews = await cursor.toArray();
             res.send(reviews);
         })
-
-
         app.get('/user-reviews/:userID', verifyJWT, async (req, res) => {
             const decoded = req.decoded;
             const userID = req.params.userID;
